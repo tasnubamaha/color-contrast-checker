@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Color Contrast Checker</title>
+
+  <style>
+    body {
+      background-color: #fff;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 800px;
+      margin: 0 auto;
+      gap: 8px;
+      border-radius: 8px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 32px;
+      color: #333;
+    }
+
+    .color-pickers {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .color-picker {
+      display: flex;
+      flex-direction: column;
+      width: 160px;
+      gap: 4px;
+    }
+
+    label {
+      font-weight: 600;
+      color: rgba(0, 0, 0, 0.7);
+    }
+
+    input[type="color"] {
+      width: 100%;
+      height: 40px;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    input[type="text"] {
+      padding: 8px 12px;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .results {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+    }
+
+    .results-item {
+      text-align: center;
+      padding: 15px;
+      min-width: 130px;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+    }
+
+    .results-item h3 {
+      margin-bottom: 10px;
+      text-align: center;
+      color: #333;
+    }
+
+    .results-item p {
+      margin-bottom: 5px;
+    }
+
+    .pass {
+      color: #38a169;
+      font-weight: bold;
+    }
+
+    .fail,
+    .error-message {
+      color: #e53e3e;
+      font-weight: bold;
+    }
+
+    .preview {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100px;
+      margin-bottom: 20px;
+      font-size: 24px;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .ratio {
+      text-align: center;
+      font-style: italic;
+      color: #333;
+    }
+
+    .error-message {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>Color Contrast Checker</h1>
+
+    <div class="color-pickers">
+
+      <!-- Text Color -->
+      <div class="color-picker">
+
+        <label for="text-color">
+          Text Color:
+        </label>
+
+        <input
+          type="color"
+          id="text-color"
+          value="#000000"
+        />
+
+        <input
+          type="text"
+          id="text-color-hex"
+          value="#000000"
+        />
+
+        <p
+          id="text-color-error"
+          class="error-message">
+        </p>
+
+      </div>
+
+
+      <!-- Background Color -->
+      <div class="color-picker">
+
+        <label for="bg-color">
+          Background Color:
+        </label>
+
+        <input
+          type="color"
+          id="bg-color"
+          value="#FFFFFF"
+        />
+
+        <input
+          type="text"
+          id="bg-color-hex"
+          value="#FFFFFF"
+        />
+
+        <p
+          id="bg-color-error"
+          class="error-message">
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- Results -->
+
+    <div class="output">
+
+      <div class="results">
+
+        <!-- WCAG AA -->
+        <div class="results-item">
+
+          <h3>WCAG AA</h3>
+
+          <p>
+            Normal Text:
+            <span id="normal_text_aa">
+              Pass
+            </span>
+          </p>
+
+          <p>
+            Large Text:
+            <span id="large_text_aa">
+              Pass
+            </span>
+          </p>
+
+        </div>
+
+
+        <!-- WCAG AAA -->
+        <div class="results-item">
+
+          <h3>WCAG AAA</h3>
+
+          <p>
+            Normal Text:
+            <span id="normal_text_aaa">
+              Pass
+            </span>
+          </p>
+
+          <p>
+            Large Text:
+            <span id="large_text_aaa">
+              Pass
+            </span>
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- Preview -->
+
+      <div
+        id="preview"
+        class="preview">
+
+        <p>
+          This is a preview text
+        </p>
+
+      </div>
+
+
+      <!-- Contrast Ratio -->
+
+      <div class="ratio">
+
+        <h2>
+          Contrast Ratio:
+          <span id="contrast-ratio"></span>
+        </h2>
+
+      </div>
+
+    </div>
+
+
+    <!-- General Error -->
+
+    <div class="error">
+
+      <p id="error-message"></p>
+
+    </div>
+
+  </div>
+
+
+  <script>
+
+    // ==========================================
+    // GET HTML ELEMENTS
+    // ==========================================
+
+    const textColorInput =
+      document.getElementById("text-color");
+
+    const bgColorInput =
+      document.getElementById("bg-color");
+
+    const textColorHex =
+      document.getElementById("text-color-hex");
+
+    const bgColorHex =
+      document.getElementById("bg-color-hex");
+
+    const textColorError =
+      document.getElementById("text-color-error");
+
+    const bgColorError =
+      document.getElementById("bg-color-error");
+
+    const normal_text_aa =
+      document.getElementById("normal_text_aa");
+
+    const large_text_aa =
+      document.getElementById("large_text_aa");
+
+    const normal_text_aaa =
+      document.getElementById("normal_text_aaa");
+
+    const large_text_aaa =
+      document.getElementById("large_text_aaa");
+
+    const preview =
+      document.getElementById("preview");
+
+    const contrastRatio =
+      document.getElementById("contrast-ratio");
+
+    const errorMessage =
+      document.getElementById("error-message");
+
+
+    // ==========================================
+    // CHECK VALID HEX COLOR
+    // ==========================================
+
+    function isValidHex(hex) {
+
+      return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(hex);
+
+    }
+
+
+    // ==========================================
+    // UPDATE PREVIEW COLORS
+    // ==========================================
+
+    function updateColors() {
+
+      const textColor =
+        textColorInput.value;
+
+      const bgColor =
+        bgColorInput.value;
+
+
+      // Change preview text color
+      preview.style.color =
+        textColor;
+
+
+      // Change preview background
+      preview.style.backgroundColor =
+        bgColor;
+
+
+      // Calculate contrast ratio
+      getContrastRatio(
+        textColor,
+        bgColor
+      );
+
+    }
+
+
+    // ==========================================
+    // UPDATE TEXT COLOR FROM HEX
+    // ==========================================
+
+    function updateTextColorFromHex() {
+
+      let hexValue =
+        textColorHex.value.trim();
+
+
+      // Add # if user didn't type it
+      if (hexValue.charAt(0) !== "#") {
+
+        hexValue =
+          "#" + hexValue;
+
+      }
+
+
+      // Check whether HEX is valid
+      if (!isValidHex(hexValue)) {
+
+        textColorError.textContent =
+          "Incorrect color";
+
+        textColorError.style.display =
+          "block";
+
+        return;
+
+      }
+
+
+      // Hide error
+      textColorError.textContent = "";
+
+      textColorError.style.display =
+        "none";
+
+
+      // Update color picker
+      textColorInput.value =
+        hexValue;
+
+
+      // Update HEX input
+      textColorHex.value =
+        hexValue.toUpperCase();
+
+
+      // Update preview
+      updateColors();
+
+    }
+
+
+    // ==========================================
+    // UPDATE BACKGROUND COLOR FROM HEX
+    // ==========================================
+
+    function updateBgColorFromHex() {
+
+      let hexValue =
+        bgColorHex.value.trim();
+
+
+      // Add # if user didn't type it
+      if (hexValue.charAt(0) !== "#") {
+
+        hexValue =
+          "#" + hexValue;
+
+      }
+
+
+      // Check whether HEX is valid
+      if (!isValidHex(hexValue)) {
+
+        bgColorError.textContent =
+          "Incorrect color";
+
+        bgColorError.style.display =
+          "block";
+
+        return;
+
+      }
+
+
+      // Hide error
+      bgColorError.textContent = "";
+
+      bgColorError.style.display =
+        "none";
+
+
+      // Update color picker
+      bgColorInput.value =
+        hexValue;
+
+
+      // Update HEX input
+      bgColorHex.value =
+        hexValue.toUpperCase();
+
+
+      // Update preview
+      updateColors();
+
+    }
+
+
+    // ==========================================
+    // GET CONTRAST RATIO FROM API
+    // ==========================================
+
+    async function getContrastRatio(
+      foreground,
+      background
+    ) {
+
+      try {
+
+        // Remove # from colors
+
+        const fcolor =
+          foreground.replace("#", "");
+
+        const bcolor =
+          background.replace("#", "");
+
+
+        // Create API URL
+
+        const apiUrl =
+          `https://webaim.org/resources/contrastchecker/?fcolor=${fcolor}&bcolor=${bcolor}&api`;
+
+
+        // Send request
+
+        const response =
+          await fetch(apiUrl);
+
+
+        // Check response
+
+        if (!response.ok) {
+
+          throw new Error(
+            "Network response was not ok"
+          );
+
+        }
+
+
+        // Convert response to JSON
+
+        const data =
+          await response.json();
+
+
+        console.log(data);
+
+
+        // ==================================
+        // SHOW CONTRAST RATIO
+        // ==================================
+
+        contrastRatio.textContent =
+          parseFloat(data.ratio).toFixed(2) + ":1";
+
+
+        // ==================================
+        // WCAG AA - NORMAL TEXT
+        // ==================================
+
+        normal_text_aa.textContent =
+          data.AA === "pass"
+            ? "Pass"
+            : "Fail";
+
+        normal_text_aa.className =
+          data.AA === "pass"
+            ? "pass"
+            : "fail";
+
+
+        // ==================================
+        // WCAG AA - LARGE TEXT
+        // ==================================
+
+        large_text_aa.textContent =
+          data.AALarge === "pass"
+            ? "Pass"
+            : "Fail";
+
+        large_text_aa.className =
+          data.AALarge === "pass"
+            ? "pass"
+            : "fail";
+
+
+        // ==================================
+        // WCAG AAA - NORMAL TEXT
+        // ==================================
+
+        normal_text_aaa.textContent =
+          data.AAA === "pass"
+            ? "Pass"
+            : "Fail";
+
+        normal_text_aaa.className =
+          data.AAA === "pass"
+            ? "pass"
+            : "fail";
+
+
+        // ==================================
+        // WCAG AAA - LARGE TEXT
+        // ==================================
+
+        large_text_aaa.textContent =
+          data.AAALarge === "pass"
+            ? "Pass"
+            : "Fail";
+
+        large_text_aaa.className =
+          data.AAALarge === "pass"
+            ? "pass"
+            : "fail";
+
+
+      } catch (error) {
+
+        console.error(
+          "Fetch error:",
+          error
+        );
+
+        errorMessage.textContent =
+          "Unable to check contrast ratio.";
+
+      }
+
+    }
+
+
+    // ==========================================
+    // TEXT HEX INPUT EVENT
+    // ==========================================
+
+    textColorHex.addEventListener(
+      "input",
+      updateTextColorFromHex
+    );
+
+
+    // ==========================================
+    // BACKGROUND HEX INPUT EVENT
+    // ==========================================
+
+    bgColorHex.addEventListener(
+      "input",
+      updateBgColorFromHex
+    );
+
+
+    // ==========================================
+    // TEXT COLOR PICKER EVENT
+    // ==========================================
+
+    textColorInput.addEventListener(
+      "input",
+      function () {
+
+        textColorHex.value =
+          textColorInput.value.toUpperCase();
+
+        updateColors();
+
+      }
+    );
+
+
+    // ==========================================
+    // BACKGROUND COLOR PICKER EVENT
+    // ==========================================
+
+    bgColorInput.addEventListener(
+      "input",
+      function () {
+
+        bgColorHex.value =
+          bgColorInput.value.toUpperCase();
+
+        updateColors();
+
+      }
+    );
+
+
+    // ==========================================
+    // INITIAL UPDATE
+    // ==========================================
+
+    updateColors();
+
+  </script>
+
+</body>
+
+</html>
